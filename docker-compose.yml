@@ -1,0 +1,30 @@
+version: "3.8"
+
+services:
+  smart-camera-runner:
+    image: myoung34/github-runner:latest
+    container_name: ${CONTAINER_NAME:-github-runner}
+    restart: always
+    environment:
+      # Scope this runner to a single repository
+      RUNNER_SCOPE: repo
+      # Target repository (do not quote)
+      REPO_URL: ${REPO_URL?Please export REPO_URL (e.g. https://github.com/owner/repo)}
+
+      # Provide a token with at least the `repo` scope at runtime via env
+      # Never commit tokens. Compose will substitute this from your shell.
+      ACCESS_TOKEN: ${GH_PAT?Please export GH_PAT before starting}
+
+      # Runner behavior and identification
+      EPHEMERAL: ${EPHEMERAL:-1}           # one job per container start, then exit
+      DISABLE_AUTO_UPDATE: ${DISABLE_AUTO_UPDATE:-1} # avoid surprise auto-updates
+      RUNNER_NAME_PREFIX: ${RUNNER_NAME_PREFIX:-ghr-}
+      LABELS: ${RUNNER_LABELS:-self-hosted,linux,x64}
+
+    # Let workflows that use Docker build/run containers
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+
+    # On SELinux hosts uncomment below to avoid labeling issues
+    # security_opt:
+    #   - label:disable
